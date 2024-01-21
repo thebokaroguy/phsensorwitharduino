@@ -1,0 +1,68 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <ESP8266WiFi.h>
+#include <ArduinoJson.h>
+
+const char* ssid = "tousifredmi";
+const char* password = "69696969";
+const char* server = "SIGN-UP-FOR-KEY";
+const int port = 80;
+const String endpoint = "/api/data";
+
+const int phSensorPin = A0;
+const int buzzerPin = 8;
+const int ledPin = 13;
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+void setup() {
+  Serial.begin(115200);
+  lcd.begin(16, 2);
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(ledPin, OUTPUT);
+
+  connectToWiFi();
+}
+
+void loop() {
+  float pHValue = readpH();
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("pH Value: ");
+  lcd.print(pHValue, 2);
+
+  if (pHValue >= 6.5 && pHValue <= 7.5) {
+    lcd.setCursor(0, 1);
+    lcd.print("Water OK");
+    digitalWrite(ledPin, HIGH);
+    noTone(buzzerPin);
+  } else {
+    lcd.setCursor(0, 1);
+    lcd.print("Water NOT OK");
+    digitalWrite(ledPin, LOW);
+    tone(buzzerPin, 1000, 1000);
+  }
+
+  delay(5000); // Adjust delay as needed
+}
+
+void connectToWiFi() {
+  Serial.println("Connecting to WiFi");
+  WiFi.begin(tousifredmi, 69696969);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting...");
+  }
+
+  Serial.println("Connected to WiFi");
+}
+
+float readpH() {
+  int sensorValue = analogRead(phSensorPin);
+  float voltage = sensorValue * (5.0 / 1023.0);
+  float pHValue = 7 - (voltage - 2.5) * 3.5;
+
+  return pHValue;
+}
